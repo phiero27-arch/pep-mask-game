@@ -140,10 +140,11 @@
 <!-- MIC TEST -->
 <div id="mic-test-screen" class="screen">
   <h1>🎤 Test microfono</h1>
-  <p>Soffia nel microfono per 3 secondi per calibrarlo.</p>
+  <p>Soffia nel microfono per 5 secondi per calibrarlo.</p>
   <div id="test-bar-bg"><div id="test-bar"></div></div>
   <div id="test-msg">Premi il tasto per iniziare il test.</div>
   <button class="btn" id="test-start-btn" onclick="beginMicTest()">Inizia test</button>
+  <button class="btn btn-sec" id="test-retry-btn" style="display:none" onclick="retryMicTest()">🔄 Ripeti calibrazione</button>
   <button class="btn btn-sec" id="test-ok-btn" style="display:none" onclick="startGame(true)">✅ OK — Inizia!</button>
   <button class="btn btn-sec" onclick="startGame(false)">Salta — gioca senza microfono</button>
 </div>
@@ -335,22 +336,35 @@ function getRMS(){
 
 // ── MIC TEST ─────────────────────────────────────────────
 function goToMicTest(){ show('mic-test-screen'); }
+function retryMicTest(){
+  if(testAnimFrame){ cancelAnimationFrame(testAnimFrame); testAnimFrame=null; }
+  peakLevel=0;
+  document.getElementById('test-bar').style.width='0%';
+  document.getElementById('test-ok-btn').style.display='none';
+  document.getElementById('test-retry-btn').style.display='none';
+  document.getElementById('test-start-btn').style.display='inline-block';
+  document.getElementById('test-start-btn').textContent='Inizia test';
+  document.getElementById('test-msg').textContent='Premi il tasto per iniziare il test.';
+}
 async function beginMicTest(){
   document.getElementById('test-start-btn').style.display='none';
   document.getElementById('test-msg').textContent='Richiesta accesso microfono…';
   const ok=await setupMic();
   if(!ok){ document.getElementById('test-msg').textContent='❌ Microfono non accessibile.'; document.getElementById('test-start-btn').style.display='inline-block'; return; }
-  document.getElementById('test-msg').textContent='✅ Attivo! Soffia per 3 secondi…';
+  document.getElementById('test-msg').textContent='✅ Attivo! Soffia per 5 secondi…';
   peakLevel=0; let frames=0;
   function loop(){
     const v=getRMS(); if(v>peakLevel) peakLevel=v;
     document.getElementById('test-bar').style.width=Math.min(v/0.3,1)*100+'%';
-    if(++frames<180){ testAnimFrame=requestAnimationFrame(loop); }
+    const secLeft=Math.ceil((300-frames)/60);
+    document.getElementById('test-msg').textContent=`✅ Attivo! Soffia… ${secLeft} sec`;
+    if(++frames<300){ testAnimFrame=requestAnimationFrame(loop); }
     else {
       MIC_THRESHOLD_ABS=Math.max(peakLevel*0.30,0.008);
       if(peakLevel>0.01){
         document.getElementById('test-msg').textContent=`🎉 Soffio rilevato! (picco: ${(peakLevel*1000).toFixed(1)})`;
         document.getElementById('test-ok-btn').style.display='inline-block';
+        document.getElementById('test-retry-btn').style.display='inline-block';
       } else {
         document.getElementById('test-msg').textContent='⚠️ Soffio non rilevato. Riprova più vicino.';
         document.getElementById('test-start-btn').style.display='inline-block';
