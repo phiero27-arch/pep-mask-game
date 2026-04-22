@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spegni le Candeline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: white; overflow: hidden;
+  }
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 700px; padding: 20px; }
+  .active { display: flex !important; }
+
+  h1 { font-size: 2em; margin-bottom: 10px; text-align: center; }
+  p  { opacity: .85; text-align: center; line-height: 1.6; }
+
+  .btn {
+    margin-top: 14px; padding: 13px 34px; font-size: 1.05em;
+    border: none; border-radius: 30px; cursor: pointer;
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e; font-weight: bold;
+    box-shadow: 0 4px 20px rgba(255,210,0,.4);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn:hover { transform: scale(1.05); }
+  .btn-sec { background: rgba(255,255,255,.15); color: white; box-shadow: none; }
+  .btn-pause { background: linear-gradient(135deg,#8e44ad,#9b59b6); color: white; box-shadow: 0 4px 16px rgba(142,68,173,.4); padding: 10px 24px; font-size: .95em; }
+  .btn-skip  { background: linear-gradient(135deg,#27ae60,#2ecc71); color: white; box-shadow: 0 4px 16px rgba(46,204,113,.4); }
+
+  .info-box { background: rgba(255,255,255,.07); border-radius: 14px; padding: 14px 20px; margin: 12px 0; width: 100%; font-size: .86em; line-height: 1.7; opacity: .85; }
+
+  /* TOP BAR */
+  #top-bar { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 8px; gap: 8px; }
+  #hud { display: flex; gap: 8px; flex-wrap: wrap; font-size: .88em; justify-content: center; }
+  #hud span { background: rgba(255,255,255,.1); padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+  #top-bar-buttons { display: flex; gap: 8px; align-items: center; justify-content: center; }
+  #chrono-box { background: rgba(255,255,255,.15); padding: 13px 34px; border-radius: 30px; font-size: 1.05em; font-weight: bold; white-space: nowrap; color: white; }
+
+  /* MIC STATUS */
+  #mic-status { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.08); border-radius: 20px; padding: 6px 14px; margin-bottom: 8px; font-size: .82em; }
+  #mic-dot { width: 9px; height: 9px; border-radius: 50%; background: #888; }
+  #mic-dot.ok  { background: #2ecc71; animation: blink .9s infinite alternate; }
+  #mic-dot.err { background: #e74c3c; }
+  @keyframes blink { from{opacity:1} to{opacity:.3} }
+
+  #phase-box { width: 100%; text-align: center; margin-bottom: 8px; font-size: 1.2em; font-weight: bold; min-height: 32px; }
+  .phase-inhale{color:#7ecfff} .phase-exhale{color:#ffd200} .phase-rest{color:#aaffaa} .phase-pause{color:#9b59b6}
+
+  /* Timer arc */
+  #timer-container { position: relative; width: 120px; height: 120px; margin-bottom: 10px; }
+  #timer-svg { transform: rotate(-90deg); }
+  #timer-arc { fill:none; stroke:#ffd200; stroke-width:10; stroke-linecap:round; stroke-dasharray:314; stroke-dashoffset:0; transition:stroke .3s; }
+  #timer-arc.inhale{stroke:#7ecfff} #timer-arc.rest-break{stroke:#9b59b6}
+  #timer-bg   { fill:none; stroke:rgba(255,255,255,.1); stroke-width:10; }
+  #timer-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:1.8em; font-weight:bold; }
+
+  /* Mic meter */
+  #mic-container { width:100%; margin-bottom:10px; }
+  #mic-label { font-size:.8em; opacity:.7; margin-bottom:4px; text-align:center; }
+  #mic-bar-bg { width:100%; height:20px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; position:relative; }
+  #mic-bar { height:100%; width:0%; border-radius:10px; background:linear-gradient(90deg,#27ae60,#ffd200,#e74c3c); transition:width .05s; }
+  #mic-threshold-line { position:absolute; top:0; bottom:0; width:3px; background:white; border-radius:2px; opacity:.8; }
+  #mic-feedback { text-align:center; font-size:.8em; margin-top:3px; min-height:16px; }
+
+  /* Candles */
+  #candles-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:11px; margin-bottom:12px; width:100%; }
+  .candle-wrap { display:flex; flex-direction:column; align-items:center; width:46px; }
+  .flame { width:22px; height:30px; position:relative; margin-bottom:2px; }
+  .flame svg { width:100%; height:100%; }
+  .flame-inner { animation:flicker .5s infinite alternate; transform-origin:bottom center; }
+  @keyframes flicker { from{transform:scaleX(1) scaleY(1) rotate(-2deg)} to{transform:scaleX(.85) scaleY(1.1) rotate(2deg)} }
+  .candle-body { width:18px; height:34px; border-radius:3px 3px 2px 2px; background:linear-gradient(180deg,#f9e4b7,#e8c77a); position:relative; box-shadow:inset -3px 0 6px rgba(0,0,0,.2); }
+  .candle-body.out { background:linear-gradient(180deg,#888,#666); }
+  .candle-wick { width:2px; height:7px; background:#333; margin:0 auto; border-radius:1px; }
+  .candle-drip { position:absolute; width:5px; height:7px; background:#f9e4b7; border-radius:0 0 4px 4px; right:2px; top:4px; }
+  .candle-num { font-size:.66em; opacity:.7; margin-top:2px; }
+  .puff { position:absolute; top:-10px; left:50%; transform:translateX(-50%); font-size:15px; animation:puffUp .6s ease-out forwards; pointer-events:none; }
+  @keyframes puffUp { from{opacity:1;transform:translateX(-50%) scale(1)} to{opacity:0;transform:translateX(-50%) translateY(-22px) scale(1.6)} }
+
+  /* Stars / dots */
+  #cycle-stars { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; justify-content:center; }
+  .star { font-size:1.25em; opacity:.2; transition:opacity .4s,transform .4s; }
+  .star.earned { opacity:1; transform:scale(1.25); }
+  #breath-dots { display:flex; gap:5px; margin-bottom:10px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.2); transition:background .3s; }
+  .dot.done{background:#ffd200} .dot.current{background:#7ecfff;animation:pulse .8s infinite alternate;}
+  @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.4)}}
+
+  /* PAUSE OVERLAY */
+  #pause-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
+    flex-direction:column; align-items:center; justify-content:center;
+    z-index:100; gap:16px;
+  }
+  #pause-overlay.visible { display:flex; }
+  #pause-overlay h2 { font-size:2.5em; }
+
+  /* INTER-CYCLE BREAK */
+  #break-screen { background:rgba(10,10,30,.95); }
+  #break-timer-big { font-size:5em; font-weight:bold; color:#9b59b6; margin:10px 0; }
+  #break-bar-bg { width:80%; max-width:340px; height:14px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; margin-bottom:8px; }
+  #break-bar { height:100%; width:100%; background:linear-gradient(90deg,#8e44ad,#9b59b6); transition:width .1s linear; }
+
+  /* End */
+  #cake { font-size:5em; margin:10px 0; animation:bounce .8s infinite alternate; }
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+  #final-stars { font-size:2em; letter-spacing:4px; margin:8px 0; }
+
+  /* Mic test */
+  #test-bar-bg { width:90%; max-width:400px; height:28px; background:rgba(255,255,255,.1); border-radius:12px; overflow:hidden; margin:16px 0; }
+  #test-bar { height:100%; width:0%; border-radius:12px; background:linear-gradient(90deg,#27ae60,#ffd200,#e74c3c); transition:width .05s; }
+  #test-msg { font-size:1em; min-height:26px; text-align:center; }
+
+  /* Particles */
+  .particle { position:fixed; pointer-events:none; font-size:1.4em; animation:fall 2s linear forwards; z-index:999; }
+  @keyframes fall{from{transform:translateY(-20px) rotate(0deg);opacity:1}to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div id="start-screen" class="screen active">
+  <h1>🎂 Spegni le Candeline!</h1>
+  <p>Usa il tuo soffio per spegnere tutte le candeline.<br>Completa 10 cicli e diventa un campione! 🏆</p>
+  <div class="info-box">
+    🔵 <b>Inspira</b> — 2 sec &nbsp;|&nbsp; 🟡 <b>Espira</b> — 5 sec<br>
+    🔁 <b>10 respiri × 10 cicli</b> = 100 candeline!<br>
+    ☕ Pausa di 30 sec tra ogni ciclo (saltabile)
+  </div>
+  <button class="btn" onclick="goToMicTest()">🎤 Testa microfono e inizia</button>
+  <button class="btn btn-sec" onclick="startGame(false)">▶ Gioca senza microfono</button>
+</div>
+
+<!-- MIC TEST -->
+<div id="mic-test-screen" class="screen">
+  <h1>🎤 Test microfono</h1>
+  <p>Soffia nel microfono per 3 secondi per calibrarlo.</p>
+  <div id="test-bar-bg"><div id="test-bar"></div></div>
+  <div id="test-msg">Premi il tasto per iniziare il test.</div>
+  <button class="btn" id="test-start-btn" onclick="beginMicTest()">Inizia test</button>
+  <button class="btn btn-sec" id="test-ok-btn" style="display:none" onclick="startGame(true)">✅ OK — Inizia!</button>
+  <button class="btn btn-sec" onclick="startGame(false)">Salta — gioca senza microfono</button>
+</div>
+
+<!-- GAME -->
+<div id="game-screen" class="screen">
+  <div id="mic-status"><div id="mic-dot"></div><span id="mic-status-text">—</span></div>
+  <div id="top-bar">
+    <div id="hud">
+      <span>🔁 Ciclo <b id="hud-cycle">1</b>/10</span>
+      <span>💨 Respiro <b id="hud-breath">1</b>/10</span>
+      <span>⭐ <b id="hud-score">0</b> pt</span>
+    </div>
+  <div id="top-bar-buttons">
+      <div id="chrono-box">⏱ 00:00</div>
+      <button class="btn btn-pause" onclick="togglePause()">⏸ Pausa</button>
+      <button class="btn btn-pause" style="background:linear-gradient(135deg,#c0392b,#e74c3c);box-shadow:0 4px 16px rgba(192,57,43,.4)" onclick="confirmEnd()">🛑 Termina</button>
+    </div>
+  </div>
+  <div id="cycle-stars"></div>
+  <div id="phase-box">—</div>
+  <div id="timer-container">
+    <svg id="timer-svg" width="120" height="120" viewBox="0 0 120 120">
+      <circle id="timer-bg" cx="60" cy="60" r="50"/>
+      <circle id="timer-arc" cx="60" cy="60" r="50"/>
+    </svg>
+    <div id="timer-text">—</div>
+  </div>
+  <div id="mic-container" style="display:none">
+    <div id="mic-label">🎤 Intensità soffio</div>
+    <div id="mic-bar-bg"><div id="mic-bar"></div><div id="mic-threshold-line"></div></div>
+    <div id="mic-feedback"></div>
+  </div>
+  <div id="breath-dots"></div>
+  <div id="candles-grid"></div>
+</div>
+
+<!-- INTER-CYCLE BREAK -->
+<div id="break-screen" class="screen">
+  <h1>☕ Pausa tra i cicli</h1>
+  <p>Ciclo <b id="break-cycle-num">—</b>/10 completato! Riprendi fiato.</p>
+  <div id="break-timer-big">30</div>
+  <div id="break-bar-bg"><div id="break-bar"></div></div>
+  <p style="opacity:.6;font-size:.85em">Il prossimo ciclo parte automaticamente</p>
+  <button class="btn btn-skip" onclick="skipBreak()" style="margin-top:16px">⏭ Salta pausa</button>
+</div>
+
+<!-- CONFIRM END OVERLAY -->
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);flex-direction:column;align-items:center;justify-content:center;z-index:101;gap:14px;">
+  <h2 style="font-size:2em;">🛑 Termina sessione?</h2>
+  <p style="opacity:.8;text-align:center">I progressi attuali verranno salvati nel riepilogo finale.</p>
+  <div style="display:flex;gap:12px;margin-top:8px;">
+    <button class="btn" style="background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;box-shadow:0 4px 16px rgba(192,57,43,.4)" onclick="forceEnd()">✅ Sì, termina</button>
+    <button class="btn btn-sec" onclick="closeConfirm()">↩ Annulla</button>
+  </div>
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div id="pause-overlay">
+  <h2>⏸ Pausa</h2>
+  <p>La sessione è in pausa.<br>Il cronometro è fermo.</p>
+  <button class="btn" onclick="togglePause()">▶ Riprendi</button>
+</div>
+
+<!-- END -->
+<div id="end-screen" class="screen">
+  <div id="cake">🎂</div>
+  <h1>Bravissimo/a! 🎉</h1>
+  <div id="final-stars"></div>
+  <div id="final-msg"></div>
+  <div class="info-box" id="final-stats"></div>
+  <button class="btn" onclick="resetGame()">🔄 Gioca ancora!</button>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+const TOTAL_CYCLES = 10, BREATHS_PER = 10;
+const INHALE_SEC = 2, EXHALE_SEC = 5, REST_SEC = 0.5;
+const BREAK_SEC = 30;
+const ARC_LEN = 2 * Math.PI * 50; // ~314
+
+let MIC_THRESHOLD_ABS = 0.01, peakLevel = 0;
+
+// ── STATE ─────────────────────────────────────────────────
+let cycle=0, breath=0, score=0, starsEarned=0, candlesOut=[];
+let animFrame=null, phaseStart=0, phaseDur=0, currentPhase='';
+let exhaleGoodFrames=0, exhaleFrames=0;
+let useMic=false;
+let audioCtx=null, analyser=null, micStream=null, testAnimFrame=null;
+
+// Pause
+let isPaused=false, pauseStart=0, totalPausedMs=0;
+
+// Chrono
+let chronoStart=0, chronoOffset=0, chronoRAF=null;
+
+// Break
+let breakStart=0, breakRAF=null;
+
+function confirmEnd(){
+  // pause game while confirming
+  if(!isPaused) togglePause();
+  document.getElementById('confirm-overlay').style.display='flex';
+}
+function closeConfirm(){
+  document.getElementById('confirm-overlay').style.display='none';
+  if(isPaused) togglePause();
+}
+function forceEnd(){
+  document.getElementById('confirm-overlay').style.display='none';
+  document.getElementById('pause-overlay').classList.remove('visible');
+  isPaused=false;
+  if(breakRAF){ cancelAnimationFrame(breakRAF); breakRAF=null; }
+  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+  endGame();
+}
+
+// ── CHRONO ────────────────────────────────────────────────
+function startChrono(){
+  chronoStart=performance.now();
+  chronoOffset=0; totalPausedMs=0;
+  tickChrono();
+}
+function tickChrono(){
+  if(isPaused){ chronoRAF=requestAnimationFrame(tickChrono); return; }
+  const elapsed=performance.now()-chronoStart-totalPausedMs+chronoOffset;
+  document.getElementById('chrono-box').textContent='⏱ '+fmtTime(elapsed);
+  chronoRAF=requestAnimationFrame(tickChrono);
+}
+function stopChrono(){ if(chronoRAF) cancelAnimationFrame(chronoRAF); }
+function getElapsedMs(){ return performance.now()-chronoStart-totalPausedMs+chronoOffset; }
+function fmtTime(ms){
+  const s=Math.floor(ms/1000), m=Math.floor(s/60);
+  return String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+
+// ── PAUSE ─────────────────────────────────────────────────
+function togglePause(){
+  if(currentPhase==='break') return; // don't pause during break screen
+  isPaused=!isPaused;
+  const overlay=document.getElementById('pause-overlay');
+  const btn=document.querySelector('.btn-pause');
+  if(isPaused){
+    pauseStart=performance.now();
+    overlay.classList.add('visible');
+    btn.textContent='▶ Riprendi';
+    if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+    // freeze phase timer by storing elapsed
+    phaseStart = phaseStart - (performance.now()-pauseStart); // will be adjusted on resume
+  } else {
+    const pausedDur=performance.now()-pauseStart;
+    totalPausedMs+=pausedDur;
+    phaseStart+=pausedDur; // shift phase start forward
+    overlay.classList.remove('visible');
+    btn.textContent='⏸ Pausa';
+    tick();
+  }
+}
+
+// ── ARC ───────────────────────────────────────────────────
+function setArc(frac,cls){
+  const a=document.getElementById('timer-arc');
+  a.style.strokeDasharray=ARC_LEN;
+  a.style.strokeDashoffset=ARC_LEN*(1-frac);
+  a.className=cls||'';
+}
+
+// ── MIC ───────────────────────────────────────────────────
+async function setupMic(){
+  try {
+    if(audioCtx){ audioCtx.close(); audioCtx=null; }
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:44100});
+    if(audioCtx.state==='suspended') await audioCtx.resume();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+    micStream=stream;
+    const src=audioCtx.createMediaStreamSource(stream);
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=1024; analyser.smoothingTimeConstant=0.4;
+    src.connect(analyser); return true;
+  } catch(e){ console.warn('Mic:',e); return false; }
+}
+function getRMS(){
+  if(!analyser) return 0;
+  const d=new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(d);
+  let s=0; for(let i=0;i<d.length;i++) s+=d[i]*d[i];
+  return Math.sqrt(s/d.length);
+}
+
+// ── MIC TEST ─────────────────────────────────────────────
+function goToMicTest(){ show('mic-test-screen'); }
+async function beginMicTest(){
+  document.getElementById('test-start-btn').style.display='none';
+  document.getElementById('test-msg').textContent='Richiesta accesso microfono…';
+  const ok=await setupMic();
+  if(!ok){ document.getElementById('test-msg').textContent='❌ Microfono non accessibile.'; document.getElementById('test-start-btn').style.display='inline-block'; return; }
+  document.getElementById('test-msg').textContent='✅ Attivo! Soffia per 3 secondi…';
+  peakLevel=0; let frames=0;
+  function loop(){
+    const v=getRMS(); if(v>peakLevel) peakLevel=v;
+    document.getElementById('test-bar').style.width=Math.min(v/0.3,1)*100+'%';
+    if(++frames<180){ testAnimFrame=requestAnimationFrame(loop); }
+    else {
+      MIC_THRESHOLD_ABS=Math.max(peakLevel*0.30,0.008);
+      if(peakLevel>0.01){
+        document.getElementById('test-msg').textContent=`🎉 Soffio rilevato! (picco: ${(peakLevel*1000).toFixed(1)})`;
+        document.getElementById('test-ok-btn').style.display='inline-block';
+      } else {
+        document.getElementById('test-msg').textContent='⚠️ Soffio non rilevato. Riprova più vicino.';
+        document.getElementById('test-start-btn').style.display='inline-block';
+        document.getElementById('test-start-btn').textContent='🔄 Riprova';
+      }
+    }
+  }
+  testAnimFrame=requestAnimationFrame(loop);
+}
+
+// ── START ─────────────────────────────────────────────────
+async function startGame(withMic){
+  useMic=withMic;
+  if(withMic&&!analyser){ const ok=await setupMic(); if(!ok) useMic=false; }
+  const dot=document.getElementById('mic-dot'), txt=document.getElementById('mic-status-text');
+  if(useMic){ dot.className='ok'; txt.textContent='Microfono attivo ✅'; }
+  else       { dot.className='err'; txt.textContent='Senza microfono (timer)'; }
+  const pctT=Math.min(MIC_THRESHOLD_ABS/0.3,1);
+  document.getElementById('mic-threshold-line').style.left=(pctT*100)+'%';
+
+  cycle=0; breath=0; score=0; starsEarned=0; candlesOut=[];
+  for(let c=0;c<TOTAL_CYCLES;c++) candlesOut[c]=[];
+  isPaused=false; totalPausedMs=0;
+
+  show('game-screen');
+  buildCycleStars(); buildBreathDots(); buildCandles();
+  document.getElementById('hud-cycle').textContent=1;
+  document.getElementById('hud-breath').textContent=1;
+  document.getElementById('hud-score').textContent=0;
+  startChrono();
+  startPhase('inhale');
+}
+
+// ── PHASE ─────────────────────────────────────────────────
+function startPhase(phase){
+  currentPhase=phase; phaseStart=performance.now();
+  exhaleGoodFrames=0; exhaleFrames=0;
+  const pb=document.getElementById('phase-box'), mc=document.getElementById('mic-container'), tt=document.getElementById('timer-text');
+  if(phase==='inhale'){
+    phaseDur=INHALE_SEC*1000; pb.textContent='🔵 Inspira…'; pb.className='phase-inhale';
+    mc.style.display='none'; tt.textContent=INHALE_SEC;
+  } else if(phase==='exhale'){
+    phaseDur=EXHALE_SEC*1000; pb.textContent='🟡 Espira — soffia!'; pb.className='phase-exhale';
+    if(useMic) mc.style.display='block'; tt.textContent=EXHALE_SEC;
+  } else {
+    phaseDur=REST_SEC*1000; pb.textContent='🟢 Pausa…'; pb.className='phase-rest';
+    mc.style.display='none'; tt.textContent='';
+  }
+  if(animFrame) cancelAnimationFrame(animFrame);
+  tick();
+}
+
+function tick(){
+  if(isPaused){ animFrame=requestAnimationFrame(tick); return; }
+  const now=performance.now(), elapsed=now-phaseStart, frac=Math.min(elapsed/phaseDur,1), remSec=Math.ceil((phaseDur-elapsed)/1000);
+  setArc(1-frac, currentPhase==='inhale'?'inhale':'');
+  if(currentPhase!=='rest') document.getElementById('timer-text').textContent=Math.max(remSec,0);
+  if(currentPhase==='exhale'&&useMic){
+    const v=getRMS();
+    document.getElementById('mic-bar').style.width=Math.min(v/(MIC_THRESHOLD_ABS*3),1)*100+'%';
+    exhaleFrames++;
+    if(v>=MIC_THRESHOLD_ABS) exhaleGoodFrames++;
+    const fb=document.getElementById('mic-feedback');
+    fb.textContent=v>=MIC_THRESHOLD_ABS?'💨 Bene! Continua così!':'Soffia più forte!';
+    fb.style.color=v>=MIC_THRESHOLD_ABS?'#2ecc71':'#e74c3c';
+  }
+  if(frac<1){ animFrame=requestAnimationFrame(tick); } else { onPhaseEnd(); }
+}
+
+function onPhaseEnd(){
+  if(currentPhase==='inhale'){
+    startPhase('exhale');
+  } else if(currentPhase==='exhale'){
+    const quality=exhaleFrames>0?exhaleGoodFrames/exhaleFrames:0;
+    const success=useMic?(quality>0.4):true;
+    candlesOut[cycle][breath]=success;
+    if(success){ score+=10; document.getElementById('hud-score').textContent=score; blowCandle(breath); }
+    startPhase('rest');
+  } else {
+    breath++;
+    if(breath>=BREATHS_PER){ endCycle(); }
+    else {
+      buildBreathDots();
+      document.getElementById('hud-breath').textContent=breath+1;
+      startPhase('inhale');
+    }
+  }
+}
+
+// ── CYCLE END + BREAK ────────────────────────────────────
+function endCycle(){
+  starsEarned++; buildCycleStars(); spawnParticles();
+  cycle++; breath=0;
+  if(cycle>=TOTAL_CYCLES){ endGame(); return; }
+  // show break screen
+  currentPhase='break';
+  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+  document.getElementById('break-cycle-num').textContent=cycle; // cycles done so far
+  show('break-screen');
+  startBreak();
+}
+
+function startBreak(){
+  breakStart=performance.now();
+  tickBreak();
+}
+
+function tickBreak(){
+  const elapsed=performance.now()-breakStart;
+  const remaining=Math.max(BREAK_SEC*1000-elapsed,0);
+  const remSec=Math.ceil(remaining/1000);
+  document.getElementById('break-timer-big').textContent=remSec;
+  const frac=remaining/(BREAK_SEC*1000);
+  document.getElementById('break-bar').style.width=(frac*100)+'%';
+  if(remaining>0){ breakRAF=requestAnimationFrame(tickBreak); }
+  else { resumeAfterBreak(); }
+}
+
+function skipBreak(){
+  if(breakRAF){ cancelAnimationFrame(breakRAF); breakRAF=null; }
+  resumeAfterBreak();
+}
+
+function resumeAfterBreak(){
+  show('game-screen');
+  document.getElementById('hud-cycle').textContent=cycle+1;
+  document.getElementById('hud-breath').textContent=1;
+  buildBreathDots(); buildCandles();
+  startPhase('inhale');
+}
+
+// ── END ───────────────────────────────────────────────────
+function endGame(){
+  stopChrono();
+  if(animFrame) cancelAnimationFrame(animFrame);
+  if(micStream) micStream.getTracks().forEach(t=>t.stop());
+  show('end-screen');
+  const total=TOTAL_CYCLES*BREATHS_PER; let blown=0;
+  candlesOut.forEach(c=>c.forEach(v=>{if(v)blown++;}));
+  const elapsed=getElapsedMs();
+  document.getElementById('final-stars').textContent='⭐'.repeat(starsEarned);
+  document.getElementById('final-msg').textContent=
+    blown===total?'🏆 Perfetto! Hai spento TUTTE le candeline!':`Hai spento ${blown} candeline su ${total}. Grande lavoro!`;
+  document.getElementById('final-stats').innerHTML=
+    `<b>Riepilogo sessione:</b><br>
+     🔁 Cicli completati: ${starsEarned}/${TOTAL_CYCLES}<br>
+     💨 Candeline spente: ${blown}/${total}<br>
+     ⏱ Tempo totale: ${fmtTime(elapsed)}<br>
+     ⭐ Punteggio: ${score} punti`;
+  for(let i=0;i<5;i++) setTimeout(spawnParticles,i*600);
+}
+
+function resetGame(){
+  stopChrono();
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; analyser=null; }
+  if(breakRAF){ cancelAnimationFrame(breakRAF); breakRAF=null; }
+  document.getElementById('pause-overlay').classList.remove('visible');
+  isPaused=false; peakLevel=0; MIC_THRESHOLD_ABS=0.01;
+  show('start-screen');
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function show(id){
+  ['start-screen','mic-test-screen','game-screen','break-screen','end-screen'].forEach(s=>document.getElementById(s).classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function buildCycleStars(){
+  const el=document.getElementById('cycle-stars'); el.innerHTML='';
+  for(let i=0;i<TOTAL_CYCLES;i++){
+    const s=document.createElement('span'); s.className='star'+(i<starsEarned?' earned':''); s.textContent='⭐'; el.appendChild(s);
+  }
+}
+function buildBreathDots(){
+  const el=document.getElementById('breath-dots'); el.innerHTML='';
+  for(let i=0;i<BREATHS_PER;i++){
+    const d=document.createElement('div'); d.className='dot'+(i<breath?' done':i===breath?' current':''); el.appendChild(d);
+  }
+}
+function buildCandles(){
+  const grid=document.getElementById('candles-grid'); grid.innerHTML='';
+  const cyc=candlesOut[cycle]||[];
+  for(let i=0;i<BREATHS_PER;i++){
+    const out=cyc[i]===true;
+    const wrap=document.createElement('div'); wrap.className='candle-wrap'; wrap.id=`candle-${i}`;
+    const flameEl=document.createElement('div'); flameEl.className='flame'+(out?' extinguished':'');
+    if(!out) flameEl.innerHTML=`<svg viewBox="0 0 22 30"><g class="flame-inner"><ellipse cx="11" cy="20" rx="8" ry="12" fill="#ffd200" opacity=".9"/><ellipse cx="11" cy="22" rx="5" ry="8" fill="#ff8c00" opacity=".85"/><ellipse cx="11" cy="25" rx="3" ry="5" fill="#fff" opacity=".5"/></g></svg>`;
+    const body=document.createElement('div'); body.className='candle-body'+(out?' out':'');
+    const wick=document.createElement('div'); wick.className='candle-wick';
+    const drip=document.createElement('div'); drip.className='candle-drip';
+    body.appendChild(wick); body.appendChild(drip);
+    const num=document.createElement('div'); num.className='candle-num'; num.textContent=i+1;
+    wrap.appendChild(flameEl); wrap.appendChild(body); wrap.appendChild(num);
+    grid.appendChild(wrap);
+  }
+}
+function blowCandle(idx){
+  const wrap=document.getElementById(`candle-${idx}`); if(!wrap) return;
+  const flame=wrap.querySelector('.flame'), body=wrap.querySelector('.candle-body');
+  flame.innerHTML='';
+  const puff=document.createElement('div'); puff.className='puff'; puff.textContent='💨'; flame.appendChild(puff);
+  setTimeout(()=>{ flame.classList.add('extinguished'); body.classList.add('out'); },500);
+}
+function spawnParticles(){
+  const em=['🎉','⭐','✨','🌟','💫','🎊','🎈'];
+  for(let i=0;i<16;i++) setTimeout(()=>{
+    const p=document.createElement('div'); p.className='particle';
+    p.textContent=em[Math.floor(Math.random()*em.length)];
+    p.style.left=Math.random()*100+'vw'; p.style.top='-30px';
+    p.style.animationDuration=(1.2+Math.random())+'s';
+    document.body.appendChild(p); setTimeout(()=>p.remove(),2500);
+  },i*80);
+}
+</script>
+</body>
+</html>
