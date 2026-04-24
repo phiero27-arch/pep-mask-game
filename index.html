@@ -496,7 +496,7 @@ function onPhaseEnd(){
     startPhase('exhale');
   } else if(currentPhase==='exhale'){
     const quality=exhaleFrames>0?exhaleGoodFrames/exhaleFrames:0;
-    const success=useMic?(quality>0.7):true;
+    const success=useMic?(quality>0.4):true;
     candlesOut[cycle][breath]=success;
     if(success){ score+=10; document.getElementById('hud-score').textContent=score; blowCandle(breath); }
     startPhase('rest');
