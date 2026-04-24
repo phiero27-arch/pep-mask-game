@@ -66,17 +66,18 @@
   #mic-label { font-size:.8em; opacity:.7; margin-bottom:4px; text-align:center; }
   #mic-bar-wrap { position:relative; width:100%; }
   #mic-bar-bg { width:100%; height:28px; background:rgba(255,255,255,.08); border-radius:10px; overflow:hidden; position:relative; }
-  /* zone: 0-15 red | 15-18 yellow | 18-22 green | 22-25 yellow | 25-40 red */
-  #zone-red-low  { position:absolute; left:0%;    top:0; bottom:0; width:37.5%;  background:rgba(231,76,60,.30); }
-  #zone-yel-low  { position:absolute; left:37.5%; top:0; bottom:0; width:7.5%;   background:rgba(241,196,15,.35); }
-  #zone-ok       { position:absolute; left:45%;   top:0; bottom:0; width:10%;    background:rgba(46,204,113,.45); }
-  #zone-yel-high { position:absolute; left:55%;   top:0; bottom:0; width:7.5%;   background:rgba(241,196,15,.35); }
-  #zone-red-high { position:absolute; left:62.5%; top:0; bottom:0; right:0;      background:rgba(231,76,60,.30); }
-  #target-line { position:absolute; left:50%; top:0; bottom:0; width:3px; background:#fff; opacity:.9; transform:translateX(-50%); }
-  #line-low15  { position:absolute; left:37.5%; top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #line-low18  { position:absolute; left:45%;   top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #line-high22 { position:absolute; left:55%;   top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #line-high25 { position:absolute; left:62.5%; top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  /* scale 0-30: zone boundaries at 15,18,22,25 → % = value/30*100 */
+  /* 0-14 red | 15-17 yellow | 18-22 green | 23-24 yellow | 25-30 red */
+  #zone-red-low  { position:absolute; left:0%;      top:0; bottom:0; width:50%;    background:rgba(231,76,60,.30); }
+  #zone-yel-low  { position:absolute; left:50%;     top:0; bottom:0; width:10%;    background:rgba(241,196,15,.35); }
+  #zone-ok       { position:absolute; left:60%;     top:0; bottom:0; width:13.33%; background:rgba(46,204,113,.45); }
+  #zone-yel-high { position:absolute; left:73.33%;  top:0; bottom:0; width:6.67%;  background:rgba(241,196,15,.35); }
+  #zone-red-high { position:absolute; left:80%;     top:0; bottom:0; right:0;      background:rgba(231,76,60,.30); }
+  #target-line { position:absolute; left:66.67%; top:0; bottom:0; width:3px; background:#fff; opacity:.9; transform:translateX(-50%); }
+  #line-low15  { position:absolute; left:50%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  #line-low18  { position:absolute; left:60%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  #line-high22 { position:absolute; left:73.33%; top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  #line-high25 { position:absolute; left:80%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
   #mic-needle { position:absolute; top:2px; bottom:2px; width:6px; border-radius:3px; background:white; box-shadow:0 0 8px rgba(255,255,255,.8); transform:translateX(-50%); left:0%; transition:left .08s, background .1s; }
   #mic-scale { display:flex; justify-content:space-between; padding:2px 2px 0; font-size:.72em; opacity:.6; }
   #mic-feedback { text-align:center; font-size:.85em; font-weight:bold; margin-top:4px; min-height:18px; }
@@ -181,7 +182,7 @@
     <div id="timer-text">—</div>
   </div>
   <div id="mic-container" style="display:none">
-    <div id="mic-label">🎤 Manometro (0–40 cmH₂O) — Target: 20</div>
+    <div id="mic-label">🎤 Manometro (0–30 cmH₂O) — Target: 20</div>
     <div id="mic-bar-wrap">
       <div id="mic-bar-bg">
         <div id="zone-red-low"></div>
@@ -197,7 +198,7 @@
         <div id="mic-needle"></div>
       </div>
     </div>
-    <div id="mic-scale"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span></div>
+    <div id="mic-scale"><span>0</span><span>10</span><span>20</span><span>30</span></div>
     <div id="mic-feedback"></div>
   </div>
   <div id="breath-dots"></div>
@@ -331,10 +332,10 @@ async function beginMicTest(){
     frames++;
     if(frames<totalFrames){ testAnimFrame=requestAnimationFrame(loop); }
     else {
-      // picco = 40 sulla scala; target 20 = 50% del picco
-      MIC_THRESHOLD_ABS=Math.max(peakLevel*0.50, 0.008);
+      // picco = 30 sulla scala; target 20 = 66.67% del picco
+      MIC_THRESHOLD_ABS=Math.max(peakLevel*(20/30), 0.008);
       if(peakLevel>0.01){
-        document.getElementById('test-msg').textContent=`🎉 Soffio rilevato! Picco (40): ${(peakLevel*1000).toFixed(1)} — Target (20): ${(MIC_THRESHOLD_ABS*1000).toFixed(1)}`;
+        document.getElementById('test-msg').textContent=`🎉 Soffio rilevato! Picco (30): ${(peakLevel*1000).toFixed(1)} — Target (20): ${(MIC_THRESHOLD_ABS*1000).toFixed(1)}`;
         document.getElementById('btn-test-ok').style.display='inline-block';
         document.getElementById('btn-test-retry').style.display='inline-block';
       } else {
@@ -472,9 +473,9 @@ function tick(){
   if(currentPhase!=='rest') document.getElementById('timer-text').textContent=Math.max(remSec,0);
   if(currentPhase==='exhale'&&useMic){
     const v=getRMS();
-    // picco calibrato = 40; MIC_THRESHOLD_ABS = valore RMS corrispondente a 20
-    const mano=Math.min((v/MIC_THRESHOLD_ABS)*20, 40);
-    const pct=(mano/40)*100;
+    // picco calibrato = 30; target 20 = 66.67% del picco
+    const mano=Math.min((v/MIC_THRESHOLD_ABS)*20, 30);
+    const pct=(mano/30)*100;
     const needle=document.getElementById('mic-needle');
     needle.style.left=pct+'%';
     if(mano>=18&&mano<=22)      { needle.style.background='#2ecc71'; needle.style.boxShadow='0 0 10px #2ecc71'; }
@@ -483,10 +484,10 @@ function tick(){
     exhaleFrames++;
     if(mano>=15&&mano<=25) exhaleGoodFrames++;
     const fb=document.getElementById('mic-feedback');
-    if(mano<15)             { fb.textContent='⬆️ Soffia più forte! ('+mano.toFixed(1)+')';   fb.style.color='#e74c3c'; }
-    else if(mano>25)        { fb.textContent='⬇️ Soffia meno forte! ('+mano.toFixed(1)+')';  fb.style.color='#e74c3c'; }
-    else if(mano>=18&&mano<=22){ fb.textContent='✅ Ottimo! Mantieni! ('+mano.toFixed(1)+')'; fb.style.color='#2ecc71'; }
-    else                    { fb.textContent='🟡 Quasi! Aggiusta il soffio ('+mano.toFixed(1)+')'; fb.style.color='#f1c40f'; }
+    if(mano<15)                { fb.textContent='⬆️ Soffia più forte!';         fb.style.color='#e74c3c'; }
+    else if(mano>25)           { fb.textContent='⬇️ Soffia meno forte!';        fb.style.color='#e74c3c'; }
+    else if(mano>=18&&mano<=22){ fb.textContent='✅ Ottimo! Mantieni!';          fb.style.color='#2ecc71'; }
+    else                       { fb.textContent='🟡 Quasi! Aggiusta il soffio'; fb.style.color='#f1c40f'; }
   }
   if(frac<1){ animFrame=requestAnimationFrame(tick); } else { onPhaseEnd(); }
 }
@@ -496,7 +497,7 @@ function onPhaseEnd(){
     startPhase('exhale');
   } else if(currentPhase==='exhale'){
     const quality=exhaleFrames>0?exhaleGoodFrames/exhaleFrames:0;
-    const success=useMic?(quality>0.4):true;
+    const success=useMic?(quality>0.7):true;
     candlesOut[cycle][breath]=success;
     if(success){ score+=10; document.getElementById('hud-score').textContent=score; blowCandle(breath); }
     startPhase('rest');
