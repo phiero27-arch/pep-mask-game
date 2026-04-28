@@ -16,8 +16,8 @@
   }
   .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 700px; padding: 20px; }
   .active { display: flex !important; }
-
   h1 { font-size: 2em; margin-bottom: 10px; text-align: center; }
+  h2 { font-size: 1.4em; margin-bottom: 8px; text-align: center; }
   p  { opacity: .85; text-align: center; line-height: 1.6; }
 
   .btn {
@@ -33,8 +33,13 @@
   .btn-pause{ background: linear-gradient(135deg,#8e44ad,#9b59b6); color: white; box-shadow: 0 4px 16px rgba(142,68,173,.4); padding: 13px 34px; font-size: 1.05em; }
   .btn-stop { background: linear-gradient(135deg,#c0392b,#e74c3c); color: white; box-shadow: 0 4px 16px rgba(192,57,43,.4); padding: 13px 34px; font-size: 1.05em; }
   .btn-skip { background: linear-gradient(135deg,#27ae60,#2ecc71); color: white; box-shadow: 0 4px 16px rgba(46,204,113,.4); }
+  .btn-blue { background: linear-gradient(135deg,#2980b9,#3498db); color: white; box-shadow: 0 4px 16px rgba(52,152,219,.4); }
 
   .info-box { background: rgba(255,255,255,.07); border-radius: 14px; padding: 14px 20px; margin: 12px 0; width: 100%; font-size: .86em; line-height: 1.7; opacity: .85; }
+  .cal-card { background: rgba(255,255,255,.08); border-radius: 16px; padding: 18px 22px; margin: 10px 0; width: 100%; cursor: pointer; border: 2px solid transparent; transition: border .2s, background .2s; }
+  .cal-card:hover { background: rgba(255,255,255,.13); border-color: rgba(255,210,0,.5); }
+  .cal-card h3 { font-size: 1em; margin-bottom: 6px; }
+  .cal-card p  { font-size: .83em; opacity: .75; text-align: left; }
 
   /* MIC STATUS */
   #mic-status { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.08); border-radius: 20px; padding: 6px 14px; margin-bottom: 8px; font-size: .82em; }
@@ -61,26 +66,31 @@
   #timer-bg   { fill:none; stroke:rgba(255,255,255,.1); stroke-width:10; }
   #timer-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:1.8em; font-weight:bold; }
 
-  /* Manometer bar */
+  /* Manometer bar (shared between test and game) */
+  .mano-wrap { width:100%; margin-bottom:6px; }
+  .mano-label { font-size:.8em; opacity:.7; margin-bottom:4px; text-align:center; }
+  .mano-bg { width:100%; height:28px; background:rgba(255,255,255,.08); border-radius:10px; overflow:hidden; position:relative; }
+  .zone-red-low  { position:absolute; left:0%;      top:0; bottom:0; width:50%;    background:rgba(231,76,60,.30); }
+  .zone-yel-low  { position:absolute; left:50%;     top:0; bottom:0; width:10%;    background:rgba(241,196,15,.35); }
+  .zone-ok       { position:absolute; left:60%;     top:0; bottom:0; width:13.33%; background:rgba(46,204,113,.45); }
+  .zone-yel-high { position:absolute; left:73.33%;  top:0; bottom:0; width:6.67%;  background:rgba(241,196,15,.35); }
+  .zone-red-high { position:absolute; left:80%;     top:0; bottom:0; right:0;      background:rgba(231,76,60,.30); }
+  .target-line   { position:absolute; left:66.67%;  top:0; bottom:0; width:3px; background:#fff; opacity:.9; transform:translateX(-50%); }
+  .line-15 { position:absolute; left:50%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  .line-18 { position:absolute; left:60%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  .line-22 { position:absolute; left:73.33%; top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  .line-25 { position:absolute; left:80%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
+  .mano-needle { position:absolute; top:2px; bottom:2px; width:6px; border-radius:3px; background:white; box-shadow:0 0 8px rgba(255,255,255,.8); transform:translateX(-50%); left:0%; transition:left .08s, background .1s; }
+  .mano-scale { display:flex; justify-content:space-between; padding:2px 2px 0; font-size:.72em; opacity:.6; }
+  .mano-feedback { text-align:center; font-size:.85em; font-weight:bold; margin-top:4px; min-height:18px; }
+
   #mic-container { width:100%; margin-bottom:10px; }
-  #mic-label { font-size:.8em; opacity:.7; margin-bottom:4px; text-align:center; }
-  #mic-bar-wrap { position:relative; width:100%; }
-  #mic-bar-bg { width:100%; height:28px; background:rgba(255,255,255,.08); border-radius:10px; overflow:hidden; position:relative; }
-  /* scale 0-30: zone boundaries at 15,18,22,25 → % = value/30*100 */
-  /* 0-14 red | 15-17 yellow | 18-22 green | 23-24 yellow | 25-30 red */
-  #zone-red-low  { position:absolute; left:0%;      top:0; bottom:0; width:50%;    background:rgba(231,76,60,.30); }
-  #zone-yel-low  { position:absolute; left:50%;     top:0; bottom:0; width:10%;    background:rgba(241,196,15,.35); }
-  #zone-ok       { position:absolute; left:60%;     top:0; bottom:0; width:13.33%; background:rgba(46,204,113,.45); }
-  #zone-yel-high { position:absolute; left:73.33%;  top:0; bottom:0; width:6.67%;  background:rgba(241,196,15,.35); }
-  #zone-red-high { position:absolute; left:80%;     top:0; bottom:0; right:0;      background:rgba(231,76,60,.30); }
-  #target-line { position:absolute; left:66.67%; top:0; bottom:0; width:3px; background:#fff; opacity:.9; transform:translateX(-50%); }
-  #line-low15  { position:absolute; left:50%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #line-low18  { position:absolute; left:60%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #line-high22 { position:absolute; left:73.33%; top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #line-high25 { position:absolute; left:80%;    top:0; bottom:0; width:2px; background:rgba(255,255,255,.4); }
-  #mic-needle { position:absolute; top:2px; bottom:2px; width:6px; border-radius:3px; background:white; box-shadow:0 0 8px rgba(255,255,255,.8); transform:translateX(-50%); left:0%; transition:left .08s, background .1s; }
-  #mic-scale { display:flex; justify-content:space-between; padding:2px 2px 0; font-size:.72em; opacity:.6; }
-  #mic-feedback { text-align:center; font-size:.85em; font-weight:bold; margin-top:4px; min-height:18px; }
+
+  /* Slider */
+  .slider-wrap { width:100%; margin-top:10px; }
+  .slider-wrap label { font-size:.85em; opacity:.8; display:flex; justify-content:space-between; margin-bottom:4px; }
+  input[type=range] { width:100%; accent-color:#ffd200; cursor:pointer; }
+  #slider-val { font-weight:bold; color:#ffd200; }
 
   /* Candles */
   #candles-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:11px; margin-bottom:12px; width:100%; }
@@ -110,21 +120,23 @@
   .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); flex-direction:column; align-items:center; justify-content:center; z-index:100; gap:16px; }
   .overlay.visible { display:flex !important; }
 
-  /* Break screen */
+  /* Break */
   #break-screen { background:rgba(10,10,30,.97); }
   #break-timer-big { font-size:5em; font-weight:bold; color:#9b59b6; margin:10px 0; }
   #break-bar-bg { width:80%; max-width:340px; height:14px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden; margin-bottom:8px; }
-  #break-bar { height:100%; width:100%; background:linear-gradient(90deg,#8e44ad,#9b59b6); transition:width .1s linear; }
+  #break-bar { height:100%; width:100%; background:linear-gradient(90deg,#8e44ad,#9b59b6); }
 
   /* End */
   #cake { font-size:5em; margin:10px 0; animation:bounce .8s infinite alternate; }
   @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
   #final-stars { font-size:2em; letter-spacing:4px; margin:8px 0; }
 
-  /* Mic test */
-  #test-bar-bg { width:90%; max-width:400px; height:28px; background:rgba(255,255,255,.1); border-radius:12px; overflow:hidden; margin:16px 0; }
-  #test-bar { height:100%; width:0%; border-radius:12px; background:linear-gradient(90deg,#27ae60,#ffd200,#e74c3c); transition:width .05s; }
-  #test-msg { font-size:1em; min-height:26px; text-align:center; padding: 0 10px; }
+  /* countdown ring for test */
+  #test-ring-wrap { position:relative; width:90px; height:90px; margin:10px auto; }
+  #test-ring-svg { transform:rotate(-90deg); }
+  #test-ring-arc { fill:none; stroke:#ffd200; stroke-width:8; stroke-linecap:round; stroke-dasharray:251; stroke-dashoffset:0; }
+  #test-ring-bg  { fill:none; stroke:rgba(255,255,255,.1); stroke-width:8; }
+  #test-ring-txt { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:1.6em; font-weight:bold; }
 
   .particle { position:fixed; pointer-events:none; font-size:1.4em; animation:fall 2s linear forwards; z-index:999; }
   @keyframes fall{from{transform:translateY(-20px) rotate(0deg);opacity:1}to{transform:translateY(110vh) rotate(720deg);opacity:0}}
@@ -141,20 +153,72 @@
     🔁 <b>10 respiri × 10 cicli</b> = 100 candeline!<br>
     ☕ Pausa di 30 sec tra ogni ciclo (saltabile)
   </div>
-  <button class="btn" id="btn-mic-test">🎤 Testa microfono e inizia</button>
+  <button class="btn" id="btn-mic-test">🎤 Calibra microfono e inizia</button>
   <button class="btn btn-sec" id="btn-no-mic">▶ Gioca senza microfono</button>
 </div>
 
-<!-- MIC TEST -->
-<div id="mic-test-screen" class="screen">
-  <h1>🎤 Test microfono</h1>
-  <p>Soffia nel microfono per 5 secondi per calibrarlo.</p>
-  <div id="test-bar-bg"><div id="test-bar"></div></div>
-  <div id="test-msg">Premi il tasto per iniziare il test.</div>
-  <button class="btn" id="btn-test-start">Inizia test</button>
-  <button class="btn btn-sec" id="btn-test-retry" style="display:none">🔄 Ripeti calibrazione</button>
-  <button class="btn btn-sec" id="btn-test-ok" style="display:none">✅ OK — Inizia!</button>
-  <button class="btn btn-sec" id="btn-test-skip">Salta — gioca senza microfono</button>
+<!-- CAL CHOICE -->
+<div id="cal-choice-screen" class="screen">
+  <h1>🎤 Calibrazione microfono</h1>
+  <p>Scegli il tipo di calibrazione:</p>
+  <div class="cal-card" id="card-cal1">
+    <h3>📏 Calibrazione diretta</h3>
+    <p>Soffia nella PEP-Mask esattamente al livello target (20) per 5 secondi. Il sistema usa la media del tuo soffio come riferimento per il valore 20.</p>
+  </div>
+  <div class="cal-card" id="card-cal2">
+    <h3>🎛️ Calibrazione guidata + slider</h3>
+    <p>Soffia nella PEP-Mask e osserva il manometro in tempo reale. Il terapista regola manualmente la soglia tramite uno slider fino a ottenere la posizione corretta dell'ago.</p>
+  </div>
+  <button class="btn btn-sec" id="btn-cal-back">← Indietro</button>
+</div>
+
+<!-- CAL 1: DIRETTA -->
+<div id="cal1-screen" class="screen">
+  <h1>📏 Calibrazione diretta</h1>
+  <p>Soffia nella PEP-Mask al tuo <b>livello target (20)</b> e mantienilo per 5 secondi.</p>
+  <div id="test-ring-wrap">
+    <svg id="test-ring-svg" width="90" height="90" viewBox="0 0 90 90">
+      <circle id="test-ring-bg"  cx="45" cy="45" r="40"/>
+      <circle id="test-ring-arc" cx="45" cy="45" r="40"/>
+    </svg>
+    <div id="test-ring-txt">5</div>
+  </div>
+  <div id="cal1-msg" style="text-align:center;font-size:.95em;min-height:22px;margin-bottom:8px;">Premi Inizia e soffia al livello target.</div>
+  <button class="btn" id="btn-cal1-start">Inizia calibrazione</button>
+  <button class="btn btn-sec" id="btn-cal1-retry" style="display:none">🔄 Ripeti</button>
+  <button class="btn btn-sec" id="btn-cal1-ok" style="display:none">✅ OK — Inizia!</button>
+  <button class="btn btn-sec" id="btn-cal1-back">← Indietro</button>
+</div>
+
+<!-- CAL 2: GUIDATA -->
+<div id="cal2-screen" class="screen">
+  <h1>🎛️ Calibrazione guidata</h1>
+  <p>Soffia nella PEP-Mask e osserva il manometro.<br>Il terapista regola lo slider finché l'ago è sul <b>20</b>.</p>
+  <div class="mano-wrap" style="margin-top:12px">
+    <div class="mano-label">Manometro (0–30 cmH₂O) — Target: 20</div>
+    <div class="mano-bg" id="cal2-mano-bg">
+      <div class="zone-red-low"></div><div class="zone-yel-low"></div>
+      <div class="zone-ok"></div><div class="zone-yel-high"></div>
+      <div class="zone-red-high"></div>
+      <div class="line-15"></div><div class="line-18"></div>
+      <div class="line-22"></div><div class="line-25"></div>
+      <div class="target-line"></div>
+      <div class="mano-needle" id="cal2-needle"></div>
+    </div>
+    <div class="mano-scale"><span>0</span><span>10</span><span>20</span><span>30</span></div>
+    <div class="mano-feedback" id="cal2-feedback">—</div>
+  </div>
+  <div class="slider-wrap">
+    <label>Sensibilità microfono &nbsp;<span id="slider-val">50</span></label>
+    <input type="range" id="cal2-slider" min="1" max="100" value="50">
+  </div>
+  <div class="info-box" style="font-size:.8em;margin-top:10px">
+    ⬆️ Aumenta la sensibilità se l'ago è troppo a sinistra.<br>
+    ⬇️ Diminuisci la sensibilità se l'ago è troppo a destra.
+  </div>
+  <button class="btn btn-blue" id="btn-cal2-live">🎤 Avvia microfono</button>
+  <button class="btn btn-sec" id="btn-cal2-ok" style="display:none">✅ OK — Inizia!</button>
+  <button class="btn btn-sec" id="btn-cal2-back">← Indietro</button>
 </div>
 
 <!-- GAME -->
@@ -182,25 +246,22 @@
     <div id="timer-text">—</div>
   </div>
   <div id="mic-container" style="display:none">
-    <div id="mic-label">🎤 Manometro (0–30 cmH₂O) — Target: 20</div>
-    <div id="mic-bar-wrap">
-      <div id="mic-bar-bg">
-        <div id="zone-red-low"></div>
-        <div id="zone-yel-low"></div>
-        <div id="zone-ok"></div>
-        <div id="zone-yel-high"></div>
-        <div id="zone-red-high"></div>
-        <div id="line-low15"></div>
-        <div id="line-low18"></div>
-        <div id="line-high22"></div>
-        <div id="line-high25"></div>
-        <div id="target-line"></div>
-        <div id="mic-needle"></div>
+    <div class="mano-wrap">
+      <div class="mano-label">🎤 Manometro (0–30 cmH₂O) — Target: 20</div>
+      <div class="mano-bg">
+        <div class="zone-red-low"></div><div class="zone-yel-low"></div>
+        <div class="zone-ok"></div><div class="zone-yel-high"></div>
+        <div class="zone-red-high"></div>
+        <div class="line-15"></div><div class="line-18"></div>
+        <div class="line-22"></div><div class="line-25"></div>
+        <div class="target-line"></div>
+        <div class="mano-needle" id="game-needle"></div>
       </div>
+      <div class="mano-scale"><span>0</span><span>10</span><span>20</span><span>30</span></div>
+      <div class="mano-feedback" id="mic-feedback"></div>
     </div>
-    <div id="mic-scale"><span>0</span><span>10</span><span>20</span><span>30</span></div>
-    <div id="mic-feedback"></div>
   </div>
+  <button class="btn btn-sec" id="btn-redo" style="display:none;margin-top:0;margin-bottom:8px">🔄 Ripeti respiro</button>
   <div id="breath-dots"></div>
   <div id="candles-grid"></div>
 </div>
@@ -222,7 +283,7 @@
   <button class="btn" id="btn-resume">▶ Riprendi</button>
 </div>
 
-<!-- CONFIRM END OVERLAY -->
+<!-- CONFIRM END -->
 <div id="confirm-overlay" class="overlay">
   <h2 style="font-size:2em">🛑 Termina sessione?</h2>
   <p style="opacity:.8;text-align:center">I progressi attuali verranno salvati nel riepilogo finale.</p>
@@ -247,26 +308,43 @@
 const TOTAL_CYCLES=10, BREATHS_PER=10;
 const INHALE_SEC=2, EXHALE_SEC=5, REST_SEC=0.5, BREAK_SEC=30;
 const ARC_LEN=2*Math.PI*50;
+const RING_LEN=2*Math.PI*40;
 
 // ── STATE ─────────────────────────────────────────────────
 let cycle=0,breath=0,score=0,starsEarned=0,candlesOut=[];
 let animFrame=null,phaseStart=0,phaseDur=0,currentPhase='';
 let exhaleGoodFrames=0,exhaleFrames=0;
 let useMic=false;
-let audioCtx=null,analyser=null,micStream=null,testAnimFrame=null;
+let audioCtx=null,analyser=null,micStream=null;
 let isPaused=false,pauseStart=0,totalPausedMs=0;
-let chronoStart=0,chronoOffset=0,chronoRAF=null;
+let chronoStart=0,chronoRAF=null;
 let breakRAF=null;
-let MIC_THRESHOLD_ABS=0.01,peakLevel=0;
+let MIC_THRESHOLD_ABS=0.01; // RMS value = manometer 20
 
-// ── INIT BUTTONS ─────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-mic-test')   .addEventListener('click', () => show('mic-test-screen'));
-  document.getElementById('btn-no-mic')     .addEventListener('click', () => launchGame(false));
-  document.getElementById('btn-test-start') .addEventListener('click', beginMicTest);
-  document.getElementById('btn-test-retry') .addEventListener('click', retryMicTest);
-  document.getElementById('btn-test-ok')    .addEventListener('click', () => launchGame(true));
-  document.getElementById('btn-test-skip')  .addEventListener('click', () => launchGame(false));
+// Cal1
+let cal1RAF=null;
+// Cal2
+let cal2RAF=null, cal2Live=false;
+
+// ── SCREENS ───────────────────────────────────────────────
+const SCREENS=['start-screen','cal-choice-screen','cal1-screen','cal2-screen','game-screen','break-screen','end-screen'];
+function show(id){ SCREENS.forEach(s=>document.getElementById(s).classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+// ── BUTTONS ───────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('btn-mic-test')   .addEventListener('click', ()=>show('cal-choice-screen'));
+  document.getElementById('btn-no-mic')     .addEventListener('click', ()=>launchGame(false));
+  document.getElementById('card-cal1')      .addEventListener('click', startCal1Flow);
+  document.getElementById('card-cal2')      .addEventListener('click', startCal2Flow);
+  document.getElementById('btn-cal-back')   .addEventListener('click', ()=>show('start-screen'));
+  document.getElementById('btn-cal1-start') .addEventListener('click', runCal1);
+  document.getElementById('btn-cal1-retry') .addEventListener('click', resetCal1);
+  document.getElementById('btn-cal1-ok')    .addEventListener('click', ()=>launchGame(true));
+  document.getElementById('btn-cal1-back')  .addEventListener('click', ()=>{ stopMic(); show('cal-choice-screen'); });
+  document.getElementById('btn-cal2-live')  .addEventListener('click', startCal2Live);
+  document.getElementById('btn-cal2-ok')    .addEventListener('click', ()=>launchGame(true));
+  document.getElementById('btn-cal2-back')  .addEventListener('click', ()=>{ stopCal2(); show('cal-choice-screen'); });
+  document.getElementById('cal2-slider')    .addEventListener('input', onSliderChange);
   document.getElementById('btn-pause')      .addEventListener('click', togglePause);
   document.getElementById('btn-resume')     .addEventListener('click', togglePause);
   document.getElementById('btn-stop')       .addEventListener('click', confirmEnd);
@@ -274,19 +352,13 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-confirm-no') .addEventListener('click', closeConfirm);
   document.getElementById('btn-skip-break') .addEventListener('click', skipBreak);
   document.getElementById('btn-restart')    .addEventListener('click', resetGame);
+  document.getElementById('btn-redo')       .addEventListener('click', redoBreath);
 });
-
-// ── SCREEN ────────────────────────────────────────────────
-function show(id){
-  ['start-screen','mic-test-screen','game-screen','break-screen','end-screen']
-    .forEach(s => document.getElementById(s).classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
 
 // ── MIC ───────────────────────────────────────────────────
 async function setupMic(){
   try {
-    if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx=null; analyser=null; }
+    if(audioCtx){ try{audioCtx.close();}catch(e){} audioCtx=null; analyser=null; }
     audioCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:44100});
     if(audioCtx.state==='suspended') await audioCtx.resume();
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
@@ -294,11 +366,9 @@ async function setupMic(){
     const src=audioCtx.createMediaStreamSource(stream);
     analyser=audioCtx.createAnalyser();
     analyser.fftSize=1024; analyser.smoothingTimeConstant=0.4;
-    src.connect(analyser);
-    return true;
-  } catch(e){ console.warn('Mic error:',e); analyser=null; return false; }
+    src.connect(analyser); return true;
+  } catch(e){ console.warn('Mic:',e); analyser=null; return false; }
 }
-
 function getRMS(){
   if(!analyser) return 0;
   const d=new Float32Array(analyser.fftSize);
@@ -306,92 +376,160 @@ function getRMS(){
   let s=0; for(let i=0;i<d.length;i++) s+=d[i]*d[i];
   return Math.sqrt(s/d.length);
 }
+function stopMic(){
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+  if(audioCtx){ try{audioCtx.close();}catch(e){} audioCtx=null; }
+  analyser=null;
+}
 
-// ── MIC TEST ─────────────────────────────────────────────
-async function beginMicTest(){
-  document.getElementById('btn-test-start').style.display='none';
-  document.getElementById('btn-test-retry').style.display='none';
-  document.getElementById('btn-test-ok').style.display='none';
-  document.getElementById('test-msg').textContent='Richiesta accesso microfono…';
+// ── CAL 1: DIRETTA ────────────────────────────────────────
+async function startCal1Flow(){
+  show('cal1-screen');
+  resetCal1();
+}
+function resetCal1(){
+  if(cal1RAF){ cancelAnimationFrame(cal1RAF); cal1RAF=null; }
+  document.getElementById('btn-cal1-start').style.display='inline-block';
+  document.getElementById('btn-cal1-retry').style.display='none';
+  document.getElementById('btn-cal1-ok').style.display='none';
+  document.getElementById('cal1-msg').textContent='Premi Inizia e soffia al livello target.';
+  document.getElementById('test-ring-arc').style.strokeDashoffset=0;
+  document.getElementById('test-ring-txt').textContent='5';
+}
+async function runCal1(){
+  document.getElementById('btn-cal1-start').style.display='none';
+  document.getElementById('cal1-msg').textContent='Richiesta accesso microfono…';
   const ok=await setupMic();
   if(!ok){
-    document.getElementById('test-msg').textContent='❌ Microfono non accessibile. Controlla i permessi del browser.';
-    document.getElementById('btn-test-start').style.display='inline-block';
-    document.getElementById('btn-test-start').textContent='🔄 Riprova';
+    document.getElementById('cal1-msg').textContent='❌ Microfono non accessibile.';
+    document.getElementById('btn-cal1-start').style.display='inline-block';
     return;
   }
-  document.getElementById('test-msg').textContent='✅ Attivo! Soffia per 5 secondi…';
-  peakLevel=0; let frames=0;
-  const totalFrames=300;
+  document.getElementById('cal1-msg').textContent='✅ Attivo! Soffia al livello 20 per 5 secondi…';
+  const totalFrames=300; let frames=0; let sum=0; let count=0;
+  // skip first 30 frames (0.5s) to let mic stabilize
+  const skipFrames=30;
   function loop(){
-    const v=getRMS();
-    if(v>peakLevel) peakLevel=v;
-    document.getElementById('test-bar').style.width=Math.min(v/0.3,1)*100+'%';
-    const secLeft=Math.ceil((totalFrames-frames)/60);
-    document.getElementById('test-msg').textContent=`✅ Attivo! Soffia… ${secLeft} sec`;
     frames++;
-    if(frames<totalFrames){ testAnimFrame=requestAnimationFrame(loop); }
+    const rem=Math.max(totalFrames-frames,0);
+    const remSec=Math.ceil(rem/60);
+    document.getElementById('test-ring-txt').textContent=remSec;
+    document.getElementById('test-ring-arc').style.strokeDashoffset=RING_LEN*(1-rem/totalFrames);
+    if(frames>skipFrames){
+      const v=getRMS(); sum+=v; count++;
+    }
+    if(frames<totalFrames){ cal1RAF=requestAnimationFrame(loop); }
     else {
-      // picco = 30 sulla scala; target 20 = 66.67% del picco
-      MIC_THRESHOLD_ABS=Math.max(peakLevel*(20/30), 0.008);
-      if(peakLevel>0.01){
-        document.getElementById('test-msg').textContent=`🎉 Soffio rilevato! Picco (30): ${(peakLevel*1000).toFixed(1)} — Target (20): ${(MIC_THRESHOLD_ABS*1000).toFixed(1)}`;
-        document.getElementById('btn-test-ok').style.display='inline-block';
-        document.getElementById('btn-test-retry').style.display='inline-block';
+      const avg=count>0?sum/count:0;
+      MIC_THRESHOLD_ABS=Math.max(avg,0.005);
+      if(avg>0.003){
+        document.getElementById('cal1-msg').textContent=`✅ Calibrato! Valore medio rilevato: ${(avg*1000).toFixed(1)}`;
+        document.getElementById('btn-cal1-ok').style.display='inline-block';
+        document.getElementById('btn-cal1-retry').style.display='inline-block';
       } else {
-        document.getElementById('test-msg').textContent='⚠️ Soffio non rilevato. Riprova più vicino al microfono.';
-        document.getElementById('btn-test-start').style.display='inline-block';
-        document.getElementById('btn-test-start').textContent='🔄 Riprova';
+        document.getElementById('cal1-msg').textContent='⚠️ Soffio non rilevato. Avvicina il microfono e riprova.';
+        document.getElementById('btn-cal1-retry').style.display='inline-block';
       }
     }
   }
-  testAnimFrame=requestAnimationFrame(loop);
+  cal1RAF=requestAnimationFrame(loop);
 }
 
-function retryMicTest(){
-  if(testAnimFrame){ cancelAnimationFrame(testAnimFrame); testAnimFrame=null; }
-  peakLevel=0;
-  document.getElementById('test-bar').style.width='0%';
-  document.getElementById('btn-test-ok').style.display='none';
-  document.getElementById('btn-test-retry').style.display='none';
-  document.getElementById('btn-test-start').style.display='inline-block';
-  document.getElementById('btn-test-start').textContent='Inizia test';
-  document.getElementById('test-msg').textContent='Premi il tasto per iniziare il test.';
+// ── CAL 2: GUIDATA ────────────────────────────────────────
+async function startCal2Flow(){
+  show('cal2-screen');
+  document.getElementById('btn-cal2-ok').style.display='none';
+  document.getElementById('cal2-needle').style.left='0%';
+  document.getElementById('cal2-feedback').textContent='Avvia il microfono per iniziare.';
+  document.getElementById('cal2-slider').value=50;
+  document.getElementById('slider-val').textContent=50;
+  updateThresholdFromSlider();
+}
+async function startCal2Live(){
+  document.getElementById('btn-cal2-live').textContent='⏳ Connessione…';
+  document.getElementById('btn-cal2-live').disabled=true;
+  const ok=await setupMic();
+  if(!ok){
+    document.getElementById('cal2-feedback').textContent='❌ Microfono non accessibile.';
+    document.getElementById('btn-cal2-live').textContent='🎤 Avvia microfono';
+    document.getElementById('btn-cal2-live').disabled=false;
+    return;
+  }
+  cal2Live=true;
+  document.getElementById('btn-cal2-live').style.display='none';
+  document.getElementById('btn-cal2-ok').style.display='inline-block';
+  document.getElementById('cal2-feedback').textContent='Soffia e regola lo slider 👆';
+  tickCal2();
+}
+function tickCal2(){
+  if(!cal2Live) return;
+  const v=getRMS();
+  const mano=rmsToMano(v);
+  const pct=(mano/30)*100;
+  const needle=document.getElementById('cal2-needle');
+  needle.style.left=Math.min(pct,100)+'%';
+  setNeedleColor(needle,mano);
+  const fb=document.getElementById('cal2-feedback');
+  if(mano<15)             { fb.textContent='⬆️ Aumenta sensibilità (slider a destra)'; fb.style.color='#e74c3c'; }
+  else if(mano>24)        { fb.textContent='⬇️ Diminuisci sensibilità (slider a sinistra)'; fb.style.color='#e74c3c'; }
+  else if(mano>=18&&mano<=22){ fb.textContent='✅ Ottimo! L\'ago è in zona target!'; fb.style.color='#2ecc71'; }
+  else                    { fb.textContent='🟡 Quasi! Regola leggermente lo slider'; fb.style.color='#f1c40f'; }
+  cal2RAF=requestAnimationFrame(tickCal2);
+}
+function onSliderChange(){
+  const val=parseInt(document.getElementById('cal2-slider').value);
+  document.getElementById('slider-val').textContent=val;
+  updateThresholdFromSlider();
+}
+function updateThresholdFromSlider(){
+  // slider 1-100: maps to threshold range 0.3 (min sens) down to 0.003 (max sens)
+  const val=parseInt(document.getElementById('cal2-slider').value);
+  MIC_THRESHOLD_ABS=0.003+((100-val)/100)*0.297;
+}
+function stopCal2(){
+  cal2Live=false;
+  if(cal2RAF){ cancelAnimationFrame(cal2RAF); cal2RAF=null; }
+  stopMic();
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function rmsToMano(v){ return Math.min((v/MIC_THRESHOLD_ABS)*20, 30); }
+function setNeedleColor(needle,mano){
+  if(mano>=18&&mano<=22)      { needle.style.background='#2ecc71'; needle.style.boxShadow='0 0 10px #2ecc71'; }
+  else if(mano>=15&&mano<=24) { needle.style.background='#f1c40f'; needle.style.boxShadow='0 0 10px #f1c40f'; }
+  else                        { needle.style.background='#e74c3c'; needle.style.boxShadow='0 0 10px #e74c3c'; }
 }
 
 // ── LAUNCH GAME ───────────────────────────────────────────
-function launchGame(withMic){
-  useMic = withMic && (analyser !== null);
+async function launchGame(withMic){
+  cal2Live=false;
+  if(cal2RAF){ cancelAnimationFrame(cal2RAF); cal2RAF=null; }
+  useMic=withMic&&(analyser!==null);
+  if(withMic&&!analyser){ const ok=await setupMic(); useMic=ok; }
   const dot=document.getElementById('mic-dot'), txt=document.getElementById('mic-status-text');
   if(useMic){ dot.className='ok'; txt.textContent='Microfono attivo ✅'; }
   else       { dot.className='err'; txt.textContent='Senza microfono (timer)'; }
-
   cycle=0; breath=0; score=0; starsEarned=0; candlesOut=[];
   for(let c=0;c<TOTAL_CYCLES;c++) candlesOut[c]=[];
   isPaused=false; totalPausedMs=0;
   document.getElementById('pause-overlay').classList.remove('visible');
   document.getElementById('confirm-overlay').classList.remove('visible');
-
   show('game-screen');
   buildCycleStars(); buildBreathDots(); buildCandles();
   document.getElementById('hud-cycle').textContent=1;
   document.getElementById('hud-breath').textContent=1;
   document.getElementById('hud-score').textContent=0;
-  startChrono();
-  startPhase('inhale');
+  startChrono(); startPhase('inhale');
 }
 
 // ── CHRONO ────────────────────────────────────────────────
 function startChrono(){
-  chronoStart=performance.now(); chronoOffset=0; totalPausedMs=0;
+  chronoStart=performance.now(); totalPausedMs=0;
   if(chronoRAF) cancelAnimationFrame(chronoRAF);
   tickChrono();
 }
 function tickChrono(){
-  if(!isPaused){
-    const ms=performance.now()-chronoStart-totalPausedMs;
-    document.getElementById('chrono-box').textContent='⏱ '+fmtTime(ms);
-  }
+  if(!isPaused) document.getElementById('chrono-box').textContent='⏱ '+fmtTime(performance.now()-chronoStart-totalPausedMs);
   chronoRAF=requestAnimationFrame(tickChrono);
 }
 function stopChrono(){ if(chronoRAF){ cancelAnimationFrame(chronoRAF); chronoRAF=null; } }
@@ -401,31 +539,25 @@ function fmtTime(ms){ const s=Math.floor(ms/1000),m=Math.floor(s/60); return Str
 // ── PAUSE ─────────────────────────────────────────────────
 function togglePause(){
   isPaused=!isPaused;
-  const overlay=document.getElementById('pause-overlay');
-  const btn=document.getElementById('btn-pause');
   if(isPaused){
     pauseStart=performance.now();
-    overlay.classList.add('visible');
-    btn.textContent='▶ Riprendi';
+    document.getElementById('pause-overlay').classList.add('visible');
+    document.getElementById('btn-pause').textContent='▶ Riprendi';
     if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
   } else {
-    const dur=performance.now()-pauseStart;
-    totalPausedMs+=dur;
+    totalPausedMs+=performance.now()-pauseStart;
+    phaseStart+=performance.now()-pauseStart-(performance.now()-pauseStart); // no-op; shift below
+    phaseStart=phaseStart+(performance.now()-pauseStart-0);
+    // correct: shift phaseStart by pause duration
+    const dur=performance.now()-pauseStart; totalPausedMs-=dur; // undo double add
     phaseStart+=dur;
-    overlay.classList.remove('visible');
-    btn.textContent='⏸ Pausa';
+    document.getElementById('pause-overlay').classList.remove('visible');
+    document.getElementById('btn-pause').textContent='⏸ Pausa';
     tick();
   }
 }
-
-function confirmEnd(){
-  if(!isPaused) togglePause();
-  document.getElementById('confirm-overlay').classList.add('visible');
-}
-function closeConfirm(){
-  document.getElementById('confirm-overlay').classList.remove('visible');
-  if(isPaused) togglePause();
-}
+function confirmEnd(){ if(!isPaused) togglePause(); document.getElementById('confirm-overlay').classList.add('visible'); }
+function closeConfirm(){ document.getElementById('confirm-overlay').classList.remove('visible'); if(isPaused) togglePause(); }
 function forceEnd(){
   document.getElementById('confirm-overlay').classList.remove('visible');
   document.getElementById('pause-overlay').classList.remove('visible');
@@ -438,9 +570,7 @@ function forceEnd(){
 // ── ARC ───────────────────────────────────────────────────
 function setArc(frac,cls){
   const a=document.getElementById('timer-arc');
-  a.style.strokeDasharray=ARC_LEN;
-  a.style.strokeDashoffset=ARC_LEN*(1-frac);
-  a.className=cls||'';
+  a.style.strokeDasharray=ARC_LEN; a.style.strokeDashoffset=ARC_LEN*(1-frac); a.className=cls||'';
 }
 
 // ── PHASE ─────────────────────────────────────────────────
@@ -450,6 +580,8 @@ function startPhase(phase){
   const pb=document.getElementById('phase-box');
   const mc=document.getElementById('mic-container');
   const tt=document.getElementById('timer-text');
+  const redo=document.getElementById('btn-redo');
+  redo.style.display=(!useMic&&phase!=='rest')?'inline-block':'none';
   if(phase==='inhale'){
     phaseDur=INHALE_SEC*1000; pb.textContent='🔵 Inspira…'; pb.className='phase-inhale';
     mc.style.display='none'; tt.textContent=INHALE_SEC;
@@ -467,25 +599,21 @@ function startPhase(phase){
 function tick(){
   if(isPaused){ animFrame=requestAnimationFrame(tick); return; }
   const now=performance.now(), elapsed=now-phaseStart;
-  const frac=Math.min(elapsed/phaseDur,1);
-  const remSec=Math.ceil((phaseDur-elapsed)/1000);
+  const frac=Math.min(elapsed/phaseDur,1), remSec=Math.ceil((phaseDur-elapsed)/1000);
   setArc(1-frac, currentPhase==='inhale'?'inhale':'');
   if(currentPhase!=='rest') document.getElementById('timer-text').textContent=Math.max(remSec,0);
   if(currentPhase==='exhale'&&useMic){
     const v=getRMS();
-    // picco calibrato = 30; target 20 = 66.67% del picco
-    const mano=Math.min((v/MIC_THRESHOLD_ABS)*20, 30);
+    const mano=rmsToMano(v);
     const pct=(mano/30)*100;
-    const needle=document.getElementById('mic-needle');
-    needle.style.left=pct+'%';
-    if(mano>=18&&mano<=22)      { needle.style.background='#2ecc71'; needle.style.boxShadow='0 0 10px #2ecc71'; }
-    else if(mano>=15&&mano<=25) { needle.style.background='#f1c40f'; needle.style.boxShadow='0 0 10px #f1c40f'; }
-    else                        { needle.style.background='#e74c3c'; needle.style.boxShadow='0 0 10px #e74c3c'; }
+    const needle=document.getElementById('game-needle');
+    needle.style.left=Math.min(pct,100)+'%';
+    setNeedleColor(needle,mano);
     exhaleFrames++;
-    if(mano>=15&&mano<=25) exhaleGoodFrames++;
+    if(mano>=15&&mano<=24) exhaleGoodFrames++;
     const fb=document.getElementById('mic-feedback');
     if(mano<15)                { fb.textContent='⬆️ Soffia più forte!';         fb.style.color='#e74c3c'; }
-    else if(mano>25)           { fb.textContent='⬇️ Soffia meno forte!';        fb.style.color='#e74c3c'; }
+    else if(mano>24)           { fb.textContent='⬇️ Soffia meno forte!';        fb.style.color='#e74c3c'; }
     else if(mano>=18&&mano<=22){ fb.textContent='✅ Ottimo! Mantieni!';          fb.style.color='#2ecc71'; }
     else                       { fb.textContent='🟡 Quasi! Aggiusta il soffio'; fb.style.color='#f1c40f'; }
   }
@@ -493,9 +621,8 @@ function tick(){
 }
 
 function onPhaseEnd(){
-  if(currentPhase==='inhale'){
-    startPhase('exhale');
-  } else if(currentPhase==='exhale'){
+  if(currentPhase==='inhale'){ startPhase('exhale'); }
+  else if(currentPhase==='exhale'){
     const quality=exhaleFrames>0?exhaleGoodFrames/exhaleFrames:0;
     const success=useMic?(quality>0.7):true;
     candlesOut[cycle][breath]=success;
@@ -504,12 +631,13 @@ function onPhaseEnd(){
   } else {
     breath++;
     if(breath>=BREATHS_PER){ endCycle(); }
-    else {
-      buildBreathDots();
-      document.getElementById('hud-breath').textContent=breath+1;
-      startPhase('inhale');
-    }
+    else { buildBreathDots(); document.getElementById('hud-breath').textContent=breath+1; startPhase('inhale'); }
   }
+}
+
+function redoBreath(){
+  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+  startPhase('inhale');
 }
 
 // ── BREAK ─────────────────────────────────────────────────
@@ -521,24 +649,21 @@ function endCycle(){
   if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
   document.getElementById('break-cycle-num').textContent=cycle;
   show('break-screen');
-  breakStart=performance.now(); tickBreak();
+  const bs=performance.now();
+  function tb(){
+    const rem=Math.max(BREAK_SEC*1000-(performance.now()-bs),0);
+    document.getElementById('break-timer-big').textContent=Math.ceil(rem/1000);
+    document.getElementById('break-bar').style.width=(rem/(BREAK_SEC*1000)*100)+'%';
+    if(rem>0){ breakRAF=requestAnimationFrame(tb); } else { resumeAfterBreak(); }
+  }
+  breakRAF=requestAnimationFrame(tb);
 }
-function tickBreak(){
-  const rem=Math.max(BREAK_SEC*1000-(performance.now()-breakStart),0);
-  document.getElementById('break-timer-big').textContent=Math.ceil(rem/1000);
-  document.getElementById('break-bar').style.width=(rem/(BREAK_SEC*1000)*100)+'%';
-  if(rem>0){ breakRAF=requestAnimationFrame(tickBreak); } else { resumeAfterBreak(); }
-}
-function skipBreak(){
-  if(breakRAF){ cancelAnimationFrame(breakRAF); breakRAF=null; }
-  resumeAfterBreak();
-}
+function skipBreak(){ if(breakRAF){ cancelAnimationFrame(breakRAF); breakRAF=null; } resumeAfterBreak(); }
 function resumeAfterBreak(){
   show('game-screen');
   document.getElementById('hud-cycle').textContent=cycle+1;
   document.getElementById('hud-breath').textContent=1;
-  buildBreathDots(); buildCandles();
-  startPhase('inhale');
+  buildBreathDots(); buildCandles(); startPhase('inhale');
 }
 
 // ── END ───────────────────────────────────────────────────
@@ -563,19 +688,13 @@ function endGame(){
 }
 
 function resetGame(){
-  stopChrono();
-  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
-  analyser=null; audioCtx=null;
+  stopChrono(); stopMic();
   if(breakRAF){ cancelAnimationFrame(breakRAF); breakRAF=null; }
+  if(cal1RAF){ cancelAnimationFrame(cal1RAF); cal1RAF=null; }
+  cal2Live=false; if(cal2RAF){ cancelAnimationFrame(cal2RAF); cal2RAF=null; }
   document.getElementById('pause-overlay').classList.remove('visible');
   document.getElementById('confirm-overlay').classList.remove('visible');
-  isPaused=false; peakLevel=0; MIC_THRESHOLD_ABS=0.01;
-  document.getElementById('test-bar').style.width='0%';
-  document.getElementById('btn-test-start').style.display='inline-block';
-  document.getElementById('btn-test-start').textContent='Inizia test';
-  document.getElementById('btn-test-retry').style.display='none';
-  document.getElementById('btn-test-ok').style.display='none';
-  document.getElementById('test-msg').textContent='Premi il tasto per iniziare il test.';
+  isPaused=false;
   show('start-screen');
 }
 
