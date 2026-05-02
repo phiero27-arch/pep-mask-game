@@ -529,7 +529,9 @@ function startChrono(){
   tickChrono();
 }
 function tickChrono(){
-  if(!isPaused) document.getElementById('chrono-box').textContent='⏱ '+fmtTime(performance.now()-chronoStart-totalPausedMs);
+  if(!isPaused){
+    document.getElementById('chrono-box').textContent='⏱ '+fmtTime(performance.now()-chronoStart-totalPausedMs);
+  }
   chronoRAF=requestAnimationFrame(tickChrono);
 }
 function stopChrono(){ if(chronoRAF){ cancelAnimationFrame(chronoRAF); chronoRAF=null; } }
@@ -545,15 +547,17 @@ function togglePause(){
     document.getElementById('btn-pause').textContent='▶ Riprendi';
     if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
   } else {
-    totalPausedMs+=performance.now()-pauseStart;
-    phaseStart+=performance.now()-pauseStart-(performance.now()-pauseStart); // no-op; shift below
-    phaseStart=phaseStart+(performance.now()-pauseStart-0);
-    // correct: shift phaseStart by pause duration
-    const dur=performance.now()-pauseStart; totalPausedMs-=dur; // undo double add
-    phaseStart+=dur;
+    const dur=performance.now()-pauseStart;
+    totalPausedMs+=dur;
     document.getElementById('pause-overlay').classList.remove('visible');
     document.getElementById('btn-pause').textContent='⏸ Pausa';
-    tick();
+    // restart phase from beginning so countdown is clean
+    if(currentPhase==='inhale'||currentPhase==='exhale'){
+      startPhase(currentPhase);
+    } else {
+      phaseStart+=dur;
+      tick();
+    }
   }
 }
 function confirmEnd(){ if(!isPaused) togglePause(); document.getElementById('confirm-overlay').classList.add('visible'); }
